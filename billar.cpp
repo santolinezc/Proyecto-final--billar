@@ -8,14 +8,14 @@ using namespace Eigen;
 //using Eigen::MatrixXd;
 
 ///constantes
-const int N=3;//numero de bolas
+const int N=1;//numero de bolas
 const int dim=2;//dimension
 const double DT=1e-3;
-const double lx=2.00;
+const double lx=1.00;
 const double ly=1.00;
-const int pasos=500;
+const int pasos=100;
 const double rad=1e-2;// radio pelotas
-const double alpha=0.01;
+const double alpha=0.1;
 const double R=1.0;//radio de la mesa
 //estructura de datos para el cuerpo
 struct body {
@@ -76,14 +76,14 @@ int main()
   std::ofstream fout("datos.dat");
   srand(0);
   body cuerpo[N];
-  set_conditions_table1(cuerpo); 
+  set_conditions_table2(cuerpo); 
   init_gnuplot();
   
   for(int ii=0;ii<pasos;++ii){
     timestep_all(cuerpo,DT);
     fout<< ii*DT << " " << cuerpo[0].r(0) << " " << cuerpo[0].r(1)
     	<< " " << cuerpo[0].v(0) << " " << cuerpo[0].v(1) << std::endl; 
-    set_table1(cuerpo);
+    set_table2(cuerpo);
     print_gnuplot(cuerpo);
     }
   
@@ -233,9 +233,11 @@ void init_gnuplot(void)
   std::cout << "set size ratio -1" << std::endl;
   std::cout << "set parametric" << std::endl;
   std::cout << "set trange [0:1]" << std::endl;
-  std::cout << "set xrange [-0.5:" << lx+0.5 << "]" << std::endl;
-  std::cout << "set yrange [-0.5:" << ly+0.5 << "]" << std::endl;
-  print_table1();
+  //std::cout << "set xrange [-0.5:" << lx+0.5 << "]" << std::endl;//for square table
+  //std::cout << "set yrange [-0.5:" << ly+0.5 << "]" << std::endl;
+  std::cout << "set xrange [" <<-0.5 - R << ":" << R +0.5 <<  "]" << std::endl;// for stadium
+  std::cout << "set yrange [" <<-0.5-alpha-R <<":"<< alpha+R+0.5 << "]" << std::endl;
+  print_table2();
   
 }
 void print_table1(void)
@@ -248,10 +250,12 @@ void print_table1(void)
 
 void print_table2(void)
 {
-  std::cout << "plot " << R << "*cos(2*pi*t),"<< alpha << "+" << R << "*sin(2*pi*t)," ;
-  std::cout << "plot " << R << "*cos(2*pi*t),-("<< alpha << "+" << R << "*sin(2*pi*t))," ;
+  std::cout << "plot " << R << "*cos(pi*t),"<< alpha << "+" << R << "*sin(pi*t)," ;
+  std::cout << R << "*cos(pi*t),-("<< alpha << "+" << R << "*sin(pi*t))," ;
   std::cout << R << "," <<  alpha << "*t , " ;
-  std::cout << R << "," << - alpha << "*t " <<std::endl ;
+  std::cout << R << "," << - alpha << "*t, " ;
+  std::cout << -R << "," <<  alpha << "*t , " ;
+  std::cout << -R << "," << - alpha << "*t " <<std::endl ;
 }
 void print_gnuplot(body billar[])
 {
