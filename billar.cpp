@@ -8,14 +8,15 @@ using namespace Eigen;
 //using Eigen::MatrixXd;
 
 ///constantes
-const int N=2;//numero de bolas
+const int N=3;//numero de bolas
 const int dim=2;//dimension
 const double DT=1e-3;
 const double lx=2.00;
 const double ly=1.00;
 const int pasos=500;
-const double rad=1e-2;
+const double rad=1e-2;// radio pelotas
 const double alpha=0.01;
+const double R=1.0;//radio de la mesa
 //estructura de datos para el cuerpo
 struct body {
   Vector2d r,v,F,rold,r2old,vold;
@@ -61,10 +62,11 @@ void body::timestep(double dt)
 void set_table1(body   billar[]);
 void set_conditions_table1(body  billar[]);
 void set_table2(body  billar[]);
+void set_conditions_table2(body billar[]);
 void timestep_all(body billar[], double dt);
 
 void init_gnuplot(void);
-void print_table(void);
+void print_table1(void);
 void print_table2(void);
 void print_gnuplot(body billar[]);
 
@@ -95,7 +97,7 @@ void set_table1(body  billar[])
   for(int k = 0; k < N;++k){
     double delta,delta1;
     double dt1= DT/100;
-    // top side
+    // top and bottom sides
     delta = billar[k].r(1)-ly;
     delta1 = -billar[k].r(1);
     if(delta > 0 or delta1 > 0){
@@ -109,18 +111,7 @@ void set_table1(body  billar[])
       billar[k].v(1) = -billar[k].v(1);
       billar[k].timestep(dt1);
     }
-    //bottom side
-    /*if(delta1 > 0){
-      billar[k].stepback();
-      do{
-	billar[k].timestep(dt1);
-	delta1 = -billar[k].r(1);
-      }while(delta1 < 0);
-      billar[k].stepback();
-      billar[k].v(1) = -billar[k].v(1);
-      billar[k].timestep(dt1);
-      }*/
-    //right side
+    //right and left sides
     delta = billar[k].r(0)-lx;
     delta1 = -billar[k].r(0);
 
@@ -135,21 +126,9 @@ void set_table1(body  billar[])
       billar[k].v(0) = -billar[k].v(0);
       billar[k].timestep(dt1);
     }
-    //left side
-    /*if(delta1 > 0){
-      billar[k].stepback();
-      do{
-	billar[k].timestep(dt1);
-	delta1 = -billar[k].r(0);
-      }while(delta1 < 0);
-      billar[k].stepback();
-      billar[k].v(0) = -billar[k].v(0);
-      billar[k].timestep(dt1);
-    }*/ 
-
   }    
 }
-//condiciones iniciales
+//condiciones iniciales para mesa rectangular
 void set_conditions_table1(body  billar[])
 {
   for(int i= 0;i<N; ++i){
@@ -162,13 +141,85 @@ void set_conditions_table1(body  billar[])
       billar[i].m = 1+double(rand())/RAND_MAX;
       billar[i].r2old(ii) = 0;
       billar[i].F(ii) = 0;
-      billar[i].rold_inicial(DT);
       billar[i].E = 0;
     }
-   
+    billar[i].rold_inicial(DT);
   }
 }
+//sets stadium table
 
+void set_table2(body billar[])
+{
+  double delta, delta1,LX,LY;
+  double dt1 = DT/100;
+  for( int ii = 0; ii <N; ++ii){
+    LY = billar[ii].r(1);
+    if(fabs(LY) < alpha ){
+      LX = billar[ii].r(0);
+      delta = fabs(LX)-R;
+      if(delta > 0){
+	billar[ii].stepback();
+	do{
+	  billar[ii].timestep(dt1);
+	  delta = fabs(billar[ii].r(0)) - R;
+	  
+	}while(delta < 0);
+	billar[ii].stepback();
+	billar[ii].v(0) = -billar[ii].v(0);
+	billar[ii].timestep(dt1);
+      }
+    }else{
+      Vector2d Y, rn,runit,vll,vp,rvec; // in order rn:rnew, r unitario, v paralelo, v perpendicular, r vector
+      Y << 0,alpha;
+      rn = billar[ii].r-Y;
+      delta =rn.norm()-R;
+      if(delta > 0){
+	billar[ii].stepback();
+	do{
+	  billar[ii].timestep(dt1);
+	  rn = billar[ii].r-Y;
+	  delta =rn.norm()-R;
+	}while(delta< 0);
+	billar[ii].stepback();
+	rvec = billar[ii].r;
+	runit = rvec.normalized();
+	vp = (billar[ii].v.dot(runit))*runit;
+	vll = billar[ii].v-vp;
+	vp = -vp;
+	billar[ii].v = vp+vll;
+	
+      }
+    }
+   
+    
+  }
+}
+//sets initial contitions for stadium table
+void set_conditions_table2(body billar[])
+{
+  for (int i = 0; i < N;++i){
+    Vector2d L,Y,rnew,Diff;
+    L << R,R+alpha;;
+    rnew = billar[i].r;
+    for(int ii = 0; ii < rnew.size(); ++ii){
+      billar[i].r(ii) =L(ii)*double(rand())/RAND_MAX;
+      billar[i].v(ii) = 50*double(rand())/RAND_MAX;
+      billar[i].m = 1+double(rand())/RAND_MAX;
+      billar[i].r2old(ii) = 0;
+      billar[i].F(ii) = 0;
+      billar[i].E = 0;
+    }
+    Y = R*rnew.normalized();
+    Diff = rnew -Y;
+    if(Diff.norm() > 0){
+      for(int ij = 0;ij < Y.size(); ++ij){
+	billar[i].r(ij) = rnew(ij)-Y(ij)*(1+double(rand())/RAND_MAX); 
+      }
+    billar[i].rold_inicial(DT);
+    }
+  }
+}
+//implements timestep for all bodies
 void timestep_all(body billar[],double dt)
 {
   for (int ii = 0; ii < N; ++ii){
@@ -184,14 +235,23 @@ void init_gnuplot(void)
   std::cout << "set trange [0:1]" << std::endl;
   std::cout << "set xrange [-0.5:" << lx+0.5 << "]" << std::endl;
   std::cout << "set yrange [-0.5:" << ly+0.5 << "]" << std::endl;
-  print_table();
+  print_table1();
+  
 }
-void print_table(void)
+void print_table1(void)
 {
   std::cout << "plot " << lx << ","<< ly <<"* t , " ;
   std::cout << lx << "*t ," << ly << "," ;
   std::cout << 0 << "," <<  ly << "*t , " ;
   std::cout << lx << "*t ," << 0 << std::endl;
+}
+
+void print_table2(void)
+{
+  std::cout << "plot " << R << "*cos(2*pi*t),"<< alpha << "+" << R << "*sin(2*pi*t)," ;
+  std::cout << "plot " << R << "*cos(2*pi*t),-("<< alpha << "+" << R << "*sin(2*pi*t))," ;
+  std::cout << R << "," <<  alpha << "*t , " ;
+  std::cout << R << "," << - alpha << "*t " <<std::endl ;
 }
 void print_gnuplot(body billar[])
 {
