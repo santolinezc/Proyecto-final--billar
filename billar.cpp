@@ -8,15 +8,16 @@ using namespace Eigen;
 //using Eigen::MatrixXd;
 
 ///constantes
-const int N=1;//numero de bolas
-const int dim=2;//dimension
-const double DT=1e-3;
-const double lx=1.00;
-const double ly=1.00;
-const int pasos=100;
+const int N=1;// numero de bolas
+const int dim=2;// dimension
+const double DT=1e-3;// dt
+const double lx=1.00;// longitud mesa rectangular en x
+const double ly=1.00;// longitud mesa rectangular en y
+const int pasos=200; // numero de iteraciones
 const double rad=1e-2;// radio pelotas
-const double alpha=0.1;
-const double R=1.0;//radio de la mesa
+const double alpha=1e-3; //paramttro de deforamcion mesa estadio
+const double R=1.0;//radio de la mesa estadio
+
 //estructura de datos para el cuerpo
 struct body {
   Vector2d r,v,F,rold,r2old,vold;
@@ -34,7 +35,7 @@ void body::stepback()
   for (int ii = 0;ii<r.size();++ii){
     r(ii) = rold(ii);
     rold(ii) = r2old(ii);
-    vold(ii) = v(ii);
+    v(ii) = vold(ii);
   }
 }
 void body::rold_inicial(double dt)
@@ -94,9 +95,9 @@ int main()
 //sets  rectangular table
 void set_table1(body  billar[])
 {
+  double delta,delta1;
+  double dt1= DT/100;
   for(int k = 0; k < N;++k){
-    double delta,delta1;
-    double dt1= DT/100;
     // top and bottom sides
     delta = billar[k].r(1)-ly;
     delta1 = -billar[k].r(1);
@@ -150,7 +151,7 @@ void set_conditions_table1(body  billar[])
 
 void set_table2(body billar[])
 {
-  double delta, delta1,LX,LY;
+  double delta,LX,LY;
   double dt1 = DT/100;
   for( int ii = 0; ii <N; ++ii){
     LY = billar[ii].r(1);
@@ -178,11 +179,11 @@ void set_table2(body billar[])
 	do{
 	  billar[ii].timestep(dt1);
 	  rn = billar[ii].r-Y;
-	  delta =rn.norm()-R;
+	  delta =rn.norm() - R;
 	}while(delta< 0);
 	billar[ii].stepback();
 	rvec = billar[ii].r;
-	runit = rvec.normalized();
+	runit = rn.normalized();
 	vp = (billar[ii].v.dot(runit))*runit;
 	vll = billar[ii].v-vp;
 	vp = -vp;
@@ -199,7 +200,7 @@ void set_conditions_table2(body billar[])
 {
   for (int i = 0; i < N;++i){
     Vector2d L,Y,rnew,Diff;
-    L << R,R+alpha;;
+    L << R,R;
     rnew = billar[i].r;
     for(int ii = 0; ii < rnew.size(); ++ii){
       billar[i].r(ii) =L(ii)*double(rand())/RAND_MAX;
