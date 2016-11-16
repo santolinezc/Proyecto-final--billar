@@ -22,6 +22,7 @@ const double R=3.0;//radio de la mesa estadio
 struct body {
   Vector2d r,v,F,rold,r2old,vold;
   double m,E;
+  void b_init();
   void timestep(double dt);
   void rold_inicial(double dt);
   void stepback();
@@ -30,6 +31,14 @@ struct body {
 
 //funciones de la estructura
 
+void body::b_init()
+{
+  for (int ii = 0; ii < r.size(); ++ii){
+    r(ii) = 0, rold(ii) = 0, r2old(ii) = 0;
+    v(ii) = 0, vold(ii) = 0; F(ii) = 0;
+  }
+  m = 0, E = 0;
+}
 void body::stepback()
 {
   for (int ii = 0;ii<r.size();++ii){
@@ -65,6 +74,7 @@ void set_conditions_table1(body  billar[]);
 void set_table2(body  billar[]);
 void set_conditions_table2(body billar[]);
 void timestep_all(body billar[], double dt);
+void iniciar_cuerpos(body billar[]);
 
 void init_gnuplot(void);
 void print_table1(void);
@@ -77,6 +87,7 @@ int main()
   std::ofstream fout("datos.dat");
   srand(0);
   body cuerpo[N];
+  iniciar_cuerpos(cuerpo);
    set_conditions_table2(cuerpo);
    /*  cuerpo[0].r << R-0.01,0.01;
   cuerpo[0].v << -530,230;
@@ -239,6 +250,14 @@ void timestep_all(body billar[],double dt)
 {
   for (int ii = 0; ii < N; ++ii){
     billar[ii].timestep(dt);
+  }
+}
+
+//iniciates all bodies
+void iniciar_cuerpos(body billar[])
+{
+  for (int i = 0; i < N; ++i){
+    billar[i].b_init();
   }
 }
 //sets up gnuplot printing
