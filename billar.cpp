@@ -8,7 +8,7 @@ using namespace Eigen;
 //using Eigen::MatrixXd;
 
 ///constantes
-const int N=1;// numero de bolas
+const int N=2;// numero de bolas
 const int dim=2;// dimension
 const double DT=1e-3;// dt
 const double lx=1.00;// longitud mesa rectangular en x
@@ -77,12 +77,12 @@ int main()
   std::ofstream fout("datos.dat");
   srand(0);
   body cuerpo[N];
-  // set_conditions_table1(cuerpo);
-  cuerpo[0].r << R-0.01,0.01;
+   set_conditions_table2(cuerpo);
+   /*  cuerpo[0].r << R-0.01,0.01;
   cuerpo[0].v << -530,230;
   cuerpo[0].m =1 ;
   cuerpo[0].F << 0,0;
-  cuerpo[0].rold_inicial(DT);
+  cuerpo[0].rold_inicial(DT);*/
   
   init_gnuplot();
   
@@ -144,7 +144,7 @@ void set_conditions_table1(body  billar[])
     Vector2d Y = billar[i].r;
     for (int ii = 0; ii < Y.size();++ii){
       billar[i].r(ii) =L(ii)*double(rand())/RAND_MAX;
-      billar[i].v(ii) = 50*double(rand())/RAND_MAX;
+      billar[i].v(ii) = 500*(2*double(rand())/RAND_MAX-1);
       billar[i].m = 1+double(rand())/RAND_MAX;
       billar[i].r2old(ii) = 0;
       billar[i].F(ii) = 0;
@@ -214,24 +214,24 @@ void set_conditions_table2(body billar[])
 {
   for (int i = 0; i < N;++i){
     Vector2d L,Y,rnew,Diff;
-    L << R,R;
+    L << R,R+alpha;
     rnew = billar[i].r;
     for(int ii = 0; ii < rnew.size(); ++ii){
-      billar[i].r(ii) =L(ii)*double(rand())/RAND_MAX;
-      billar[i].v(ii) = 50*double(rand())/RAND_MAX;
+      billar[i].r(ii) =L(ii)*(2*double(rand())/RAND_MAX-1);
+      billar[i].v(ii) = 500*(2*double(rand())/RAND_MAX-1);
       billar[i].m = 1+double(rand())/RAND_MAX;
       billar[i].r2old(ii) = 0;
       billar[i].F(ii) = 0;
       billar[i].E = 0;
     }
-    Y = R*rnew.normalized();
+    Y << 0, alpha;
     Diff = rnew -Y;
-    if(Diff.norm() > 0){
+    if(Diff.norm() > R){
       for(int ij = 0;ij < Y.size(); ++ij){
 	billar[i].r(ij) = rnew(ij)-Y(ij)*(1+double(rand())/RAND_MAX); 
       }
-    billar[i].rold_inicial(DT);
     }
+    billar[i].rold_inicial(DT);
   }
 }
 //implements timestep for all bodies
@@ -248,7 +248,7 @@ void init_gnuplot(void)
   std::cout << "set size ratio -1" << std::endl;
   std::cout << "set parametric" << std::endl;
   std::cout << "set trange [0:1]" << std::endl;
-   print_table2();
+  print_table2();
   //print_table1();
   
 }
