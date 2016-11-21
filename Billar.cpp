@@ -8,15 +8,15 @@
 using namespace Eigen;
 
 // Constantes
-const int N = 2;         // Numero de bolas
+const int N = 50;         // Numero de bolas
 const int dim = 2;        // Dimension
 const double lx = 10.00;  // Longitud mesa rectangular en x
 const double ly = 10.00;  // Longitud mesa rectangular en y
-const int steps = 1000000;   // Numero de iteraciones
+const int steps = 1000;   // Numero de iteraciones
 const double rad = 1e-1;  // Radio pelotas
-const double alpha = 0.01; // Parametro de deforamcion mesa estadio
+const double alpha = 1.0; // Parametro de deforamcion mesa estadio
 const double R = 3.0;     // Radio de la mesa estadio
-const double DT = 1e-5;  // Dt
+const double DT = 1.0/steps;  // Dt
 
 //Declaracion de funciones
 void set_table1(Body billar[]);
@@ -63,7 +63,7 @@ int main()
     f1out.close();
     f2out.close();
 
-    Plot.plot_trajectories(N, steps, R, alpha);
+    Plot.plot_trajectories(N, steps, R, alpha);  //Tomar condiciones tal que DT sea pequeño, sino, el algoritmo fallara
     
   return 0;
 }
@@ -134,12 +134,12 @@ void set_table2(Body billar[])
     LY = billar[ii].r(1);
     if(fabs(LY) < alpha ){
       LX = billar[ii].r(0);
-      delta = fabs(LX) - (R);
+      delta = fabs(LX) - (R - billar[ii].Rad);
       if(delta >= 0){
 	billar[ii].stepback();
 	do{
 	  billar[ii].timestep(dt1);
-	  delta = fabs(billar[ii].r(0)) - (R);
+	  delta = fabs(billar[ii].r(0)) - (R - billar[ii].Rad);
 	  
 	}while(delta <= 0);
 	billar[ii].stepback();
@@ -154,7 +154,7 @@ void set_table2(Body billar[])
       }else{
 	rn = billar[ii].r - Y;
       }
-      delta =rn.norm() - (R);
+      delta =rn.norm() - (R - billar[ii].Rad);
       if(delta >= 0){
 	billar[ii].stepback();
 	do{
@@ -164,7 +164,7 @@ void set_table2(Body billar[])
 	  }else{
 	    rn = billar[ii].r-Y;
 	  } 
-    	  delta =rn.norm() - (R);
+    	  delta =rn.norm() - (R - billar[ii].Rad);
 	}while(delta < 0);
 	billar[ii].stepback();
 	rvec = billar[ii].r;
@@ -173,74 +173,70 @@ void set_table2(Body billar[])
 	vll = billar[ii].v-vp;
 	vp = -vp;
 	billar[ii].v = vp+vll;
-	
       }
     }
-   
-    
   }
 }
 //sets initial contitions for stadium table
 void set_conditions_table2(Body billar[])
-{ 
-  Vector2d L,Y,rnew,Diff;
-  L << R,R+alpha;
-  for (int i = 0; i < N;++i){
-    rnew = billar[i].r;
+{
+  double Ri;
+  double Random;
+  for (int i = 0; i < N; ++i){
     if (OP == 0){
-        for(int ii = 0; ii < rnew.size(); ++ii){
-            billar[i].r(ii) =L(ii)*(2.0*double(rand())/RAND_MAX-1);
-            billar[i].v(ii) = 500*(2.0*double(rand())/RAND_MAX-1);
-            billar[i].m = 1+double(rand())/RAND_MAX;
-            billar[i].r2old(ii) = 0;
-            billar[i].F(ii) = 0;
-            billar[i].E = 0;
-            billar[i].Rad = rad; 
-        }
-        Y << 0, alpha;
-        Diff = rnew -Y;
-        if(Diff.norm() > R){
-            for(int ij = 0;ij < Y.size(); ++ij){
-                billar[i].r(ij) = rnew(ij)-Y(ij)*(1+double(rand())/RAND_MAX); 
-            }
-        }
+      for(int ii = 0; ii < 2; ++ii){
+	Random = R*((1.95*double(rand())/RAND_MAX)-1.0);
+	if (Random == 0.0){Random += 0.1;}
+	if(ii == 0){
+	  Ri = abs(Random);
+	}
+	else{Ri = -Ri + alpha;}
+	billar[i].r(ii) = Ri*((1.95*double(rand())/RAND_MAX)-1.0);
+	billar[i].v(ii) = 100*Random;
+	billar[i].m = 1 + double(rand())/RAND_MAX;
+	billar[i].r2old(ii) = 0;
+	billar[i].F(ii) = 0;
+	billar[i].E = 0;
+	billar[i].Rad = rad; 
+      }
+      billar[i].rold_inicial(DT);
     }
     else if (OP == 1){
-          double Delta = 1e-2;
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-          for(int ii = 0; ii < rnew.size(); ++ii){
-            if (i == 0){
-                billar[i].r(ii) =L(ii)*(2.0*double(rand())/RAND_MAX-1);
-                billar[i].v(ii) = 2000*(2.0*double(rand())/RAND_MAX-1);
-                billar[i].m = 1.0+double(rand())/RAND_MAX;
-                billar[i].r2old(ii) = 0;
-                billar[i].F(ii) = 0;
-                billar[i].E = 0;
-                billar[i].Rad = rad;  
-            }
-            else {
-                billar[i].r(ii) = billar[0].r(ii) - Delta*i;
-                billar[i].v(ii) = billar[0].v(ii) - Delta*i;
-                billar[i].m = billar[0].m;
-                billar[i].r2old(ii) = 0;
-                billar[i].F(ii) = 0;
-                billar[i].E = 0;
-                billar[i].Rad = rad; 
-            }
-              
-        }
-        Y << 0, alpha;
-        Diff = rnew -Y;
-        if(Diff.norm() >= R){
-            for(int ij = 0;ij < Y.size(); ++ij){
-                billar[i].r(ij) = rnew(ij)-Y(ij)*(1+double(rand())/RAND_MAX); 
-            }
-        }       
+      double Delta = 1e-2;
+      for(int ii = 0; ii < 2; ++ii){
+	Random = R*((1.95*double(rand())/RAND_MAX)-1.0);
+	if (Random == 0.0){Random += 0.1;}
+	if(ii == 0){
+	  Ri = abs(Random);
+	}
+	else{Ri = -Ri + alpha;}
+	if (i == 0){	
+	  billar[i].r(ii) = Ri*((1.95*double(rand())/RAND_MAX)-1.0);
+	  billar[i].v(ii) = 100*Random;
+	  billar[i].m = 1 + double(rand())/RAND_MAX;
+	  billar[i].r2old(ii) = 0;
+	  billar[i].F(ii) = 0;
+	  billar[i].E = 0;
+	  billar[i].Rad = rad; 
+	}
+	else {
+	  billar[i].r(ii) = billar[0].r(ii) - Delta*i;
+	  billar[i].v(ii) = billar[0].v(ii) - Delta*i;
+	  billar[i].m = billar[0].m;
+	  billar[i].r2old(ii) = 0;
+	  billar[i].F(ii) = 0;
+	  billar[i].E = 0;
+	  billar[i].Rad = rad; 
+	}
+      }
     }
     billar[i].rold_inicial(DT);
   }
 }
-//implements timestep for all bodies
+
+
+  
+// Implements timestep for all bodies
 void timestep_all(Body billar[],double dt)
 {
   for (int ii = 0; ii < N; ++ii){
@@ -248,7 +244,7 @@ void timestep_all(Body billar[],double dt)
   }
 }
 
-//iniciates all bodies
+// Iniciates all bodies
 void iniciar_cuerpos(Body billar[])
 {
   for (int i = 0; i < N; ++i){

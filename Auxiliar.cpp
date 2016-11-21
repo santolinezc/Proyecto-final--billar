@@ -102,7 +102,7 @@ void Plot::plot_trajectories(int M, int steps, double R, double alpha)
   fout << "set size ratio -1" << std::endl;
   fout << "set parametric" << std::endl;
   fout << "set trange [0:1]" << std::endl;
-  fout << "set term gif animate delay 2" << std::endl;
+  fout << "set term gif animate delay 3" << std::endl;
   fout << "unset ytics" << std::endl;
   fout << "unset xtics" << std::endl;
   fout << "unset border" << std::endl;
@@ -113,7 +113,7 @@ void Plot::plot_trajectories(int M, int steps, double R, double alpha)
   fout << "alpha = " << alpha << std::endl;
   fout << "R = " << R << std::endl;
 
-  fout << "do for[ii = 1:" << steps-3 << ":3 ]{if( ii < " << steps-3 << "/50 ){plot for [n = 0:M] 'Data.txt' using 2+2*n:3+2*n every ::1::ii w l ls n lt 8 dashtype 2, R*cos(pi*t), alpha + R*sin(pi*t) lt 2 lw 2, R*cos(pi*t), -(alpha + R*sin(pi*t)) lt 2 lw 2, R, -alpha + 2*alpha*t lt 2 lw 2, -R, -alpha + 2*alpha*t lt 2 lw 2, for [n = 0:M] 'Data.txt'  using 2+2*n:3+2*n every ::ii::ii w p ls 6 ps 2 pt 7} else {plot for [n = 0:M] 'Data.txt' using 2+2*n:3+2*n every ::(1+counter)::ii w l ls n lt 8, for [n = 0:M] 'Data.txt'  using 2+2*n:3+2*n every::ii::ii w p ls 6 ps 2 pt 7, R*cos(pi*t), alpha + R*sin(pi*t) lt 2 lw 2, R*cos(pi*t), -(alpha + R*sin(pi*t)) lt 2 lw 2, R, -alpha + 2*alpha*t lt 2 lw 2, -R, -alpha + 2*alpha*t lt 2 lw 2; counter = counter + 1}}" << std::endl;
+  fout << "do for[ii = 1:" << steps-3 << ":3 ]{if( ii < " << steps-3 << "/100 ){plot for [n = 0:M] 'Data.txt' using 2+2*n:3+2*n every ::1::ii w l ls n lt n dashtype 2, R*cos(pi*t), alpha + R*sin(pi*t) lt 2 lw 2, R*cos(pi*t), -(alpha + R*sin(pi*t)) lt 2 lw 2, R, -alpha + 2*alpha*t lt 2 lw 2, -R, -alpha + 2*alpha*t lt 2 lw 2, for [n = 0:M] 'Data.txt'  using 2+2*n:3+2*n every ::ii::ii w p ps 2 pt n} else {plot for [n = 0:M] 'Data.txt' using 2+2*n:3+2*n every ::(1+counter)::ii w l ls n lt n, for [n = 0:M] 'Data.txt'  using 2+2*n:3+2*n every::ii::ii w p ps 2 pt n, R*cos(pi*t), alpha + R*sin(pi*t) lt 2 lw 2, R*cos(pi*t), -(alpha + R*sin(pi*t)) lt 2 lw 2, R, -alpha + 2*alpha*t lt 2 lw 2, -R, -alpha + 2*alpha*t lt 2 lw 2; counter = counter + 1}}" << std::endl;
   fout.close();
 
   std::cout << "load 'Data_trajectories.gp' " << std::endl;
