@@ -56,12 +56,14 @@ void Plot::init_gnuplot(void)
   std::cout << "set size ratio -1" << std::endl;
   std::cout << "set parametric" << std::endl;
   std::cout << "set trange [0:1]" << std::endl;
-  std::cout << "set term gif animate delay -0.5" << std::endl;
+  std::cout << "set term gif animate delay 2" << std::endl;
+  std::cout << "unset ytics" << std::endl;
+  std::cout << "unset xtics" << std::endl;
+  std::cout << "unset border" << std::endl;
   std::cout << "set output 'Billar.gif' " << std::endl;
-    
 }
-/*
-void Plot::print_table1(void)
+
+void Plot::print_table1(double rad, double lx, double ly)
 {
   std::cout << "set xrange [-0.5-" << rad << ":" << lx+rad+0.5 << "]" << std::endl;//for square table
   std::cout << "set yrange [-0.5-" << rad << ":" << ly+rad+0.5 << "]" << std::endl;
@@ -69,25 +71,51 @@ void Plot::print_table1(void)
   std::cout << -rad << "+" << lx+2*rad << "*t ," << ly+rad << "," ;
   std::cout << 0-rad << "," << -rad << "+" << ly+2*rad << "*t , " ;
   std::cout << -rad << "+" << lx+2*rad << "*t ," << 0-rad << std::endl;
-  }*/
+  }
 
 void Plot::print_table2(double R, double alpha)
 {
-  std::cout << "set xrange [" <<-0.5 - R << ":" << R <<  "]" << std::endl;// for stadium
-  std::cout << "set yrange [" <<-0.5-alpha-R <<":"<< alpha+R << "]" << std::endl;
-  std::cout << "plot " << R << "*cos(pi*t),"<< alpha << "+" << R << "*sin(pi*t)," ;
-  std::cout << R << "*cos(pi*t),-("<< alpha << "+" << R << "*sin(pi*t))," ;
-  std::cout << R << "," << -alpha << "+ "<<  2*alpha << "*t , " ;
-  std::cout << -R << "," << - alpha << "+" << 2*alpha << "*t " <<std::endl ;
+  std::cout << R << "*cos(pi*t),"<< alpha << "+" << R << "*sin(pi*t) lt 2 lw 2, " ;
+  std::cout << R << "*cos(pi*t),-("<< alpha << "+" << R << "*sin(pi*t)) lt 2 lw 2," ;
+  std::cout << R << "," << -alpha << "+ "<<  2*alpha << "*t lt 2 lw 2, " ;
+  std::cout << -R << "," << - alpha << "+" << 2*alpha << "*t lt 2 lw 2; ";
 }
 
-void Plot::print_gnuplot(Body billar[])
+void Plot::print_gnuplot(Body billar[], int N, double R, double alpha)
 {
   std::cout <<"plot "; 
-  for (int ii = 0; ii < billar[ii].r.size(); ++ii){
+  for (int ii = 0; ii < N; ++ii){
     std::cout << billar[ii].r(0) << " + " << billar[ii].Rad << "*cos(2*pi*t),"
 	      << billar[ii].r(1) << " + " << billar[ii].Rad << "*sin(2*pi*t)  lt " << ii+1 << ",";
   }
-  std::cout << " 0, 0";
+  print_table2(R, alpha);  
   std::cout << std::endl;
+}
+
+void Plot::plot_trajectories(int M, int steps, double R, double alpha)
+{
+
+  std::ofstream fout("Data_trajectories.gp");
+
+  fout << "reset" << std::endl;
+  fout << "unset key" << std::endl;
+  fout << "set size ratio -1" << std::endl;
+  fout << "set parametric" << std::endl;
+  fout << "set trange [0:1]" << std::endl;
+  fout << "set term gif animate delay 2" << std::endl;
+  fout << "unset ytics" << std::endl;
+  fout << "unset xtics" << std::endl;
+  fout << "unset border" << std::endl;
+  fout << "set output 'Billar_trajectories.gif'" << std::endl;
+
+  fout << "counter = 0" << std::endl;
+  fout << "M = " << M-1 << std::endl;
+  fout << "alpha = " << alpha << std::endl;
+  fout << "R = " << R << std::endl;
+
+  fout << "do for[ii = 1:" << steps-3 << ":3 ]{if( ii < " << steps-3 << "/50 ){plot for [n = 0:M] 'Data.txt' using 2+2*n:3+2*n every ::1::ii w l ls n lt 8 dashtype 2, R*cos(pi*t), alpha + R*sin(pi*t) lt 2 lw 2, R*cos(pi*t), -(alpha + R*sin(pi*t)) lt 2 lw 2, R, -alpha + 2*alpha*t lt 2 lw 2, -R, -alpha + 2*alpha*t lt 2 lw 2, for [n = 0:M] 'Data.txt'  using 2+2*n:3+2*n every ::ii::ii w p ls 6 ps 2 pt 7} else {plot for [n = 0:M] 'Data.txt' using 2+2*n:3+2*n every ::(1+counter)::ii w l ls n lt 8, for [n = 0:M] 'Data.txt'  using 2+2*n:3+2*n every::ii::ii w p ls 6 ps 2 pt 7, R*cos(pi*t), alpha + R*sin(pi*t) lt 2 lw 2, R*cos(pi*t), -(alpha + R*sin(pi*t)) lt 2 lw 2, R, -alpha + 2*alpha*t lt 2 lw 2, -R, -alpha + 2*alpha*t lt 2 lw 2; counter = counter + 1}}" << std::endl;
+  fout.close();
+
+  std::cout << "load 'Data_trajectories.gp' " << std::endl;
+
 }
