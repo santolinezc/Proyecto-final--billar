@@ -57,13 +57,13 @@ int main()
       f2out << ii*DT << " " << (cuerpo[0].r - cuerpo[1].r).norm() << std::endl; //Separacion entre la primera y segunda bola
     }
     set_table2(cuerpo);
-    //Plot.print_gnuplot(cuerpo,N,R,alpha);
+    Plot.print_gnuplot(cuerpo,N,R,alpha,rad,lx,ly);
     }
   
     f1out.close();
     f2out.close();
 
-    Plot.plot_trajectories(N, steps, R, alpha);  //Tomar condiciones tal que DT sea pequeño, sino, el algoritmo fallara
+    //Plot.plot_trajectories(N, steps, R, alpha);  //Tomar condiciones tal que DT sea pequeño, sino, el algoritmo fallara
     
   return 0;
 }
