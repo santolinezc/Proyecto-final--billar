@@ -18,6 +18,8 @@ const double alpha = 1.0; // Parametro de deforamcion mesa estadio
 const double R = 3.0;     // Radio de la mesa estadio
 const double DT = 1.0/steps;  // Dt
 
+const int choose = 0;     // 1 : Stadium; 0 : Rectangular table
+
 //Declaracion de funciones
 void set_table1(Body billar[]);
 void set_conditions_table1(Body billar[]);
@@ -25,6 +27,8 @@ void set_table2(Body billar[]);
 void set_conditions_table2(Body billar[]);
 void timestep_all(Body billar[], double dt);
 void iniciar_cuerpos(Body billar[]);
+void tables(Body billar[]);
+void set_conditions(Body billar[]);
 
 // Opciones
 const int OP = 1; // OP = 0 Condiciones iniciales aleatorias, OP = 1 Condiciones iniciales para el calculo del coeficiente de Lyapunov
@@ -40,7 +44,7 @@ int main()
   
   Body cuerpo[N];
   iniciar_cuerpos(cuerpo);
-  set_conditions_table2(cuerpo);
+  set_conditions(cuerpo);
 
   Plot Plot;
   Plot.init_gnuplot();
@@ -56,8 +60,8 @@ int main()
     if (OP == 1){
       f2out << ii*DT << " " << (cuerpo[0].r - cuerpo[1].r).norm() << std::endl; //Separacion entre la primera y segunda bola
     }
-    set_table2(cuerpo);
-    Plot.print_gnuplot(cuerpo,N,R,alpha,rad,lx,ly);
+    tables(cuerpo);
+    Plot.print_gnuplot(cuerpo, N, R, alpha, rad, lx, ly, choose);
     }
   
     f1out.close();
@@ -233,8 +237,6 @@ void set_conditions_table2(Body billar[])
     billar[i].rold_inicial(DT);
   }
 }
-
-
   
 // Implements timestep for all bodies
 void timestep_all(Body billar[],double dt)
@@ -250,4 +252,18 @@ void iniciar_cuerpos(Body billar[])
   for (int i = 0; i < N; ++i){
     billar[i].b_init();
   }
+}
+
+//
+void tables(Body billar[])
+{
+  if (choose == 1){set_table2(billar);}
+  else {set_table1(billar);}
+}
+
+void set_conditions(Body billar[])
+{
+ if (choose == 1){set_conditions_table2(billar);}
+ else {set_conditions_table1(billar);}
+
 }

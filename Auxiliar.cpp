@@ -81,15 +81,16 @@ void Plot::print_table2(double R, double alpha)
   std::cout << -R << "," << - alpha << "+" << 2*alpha << "*t lt 2 lw 2; ";
 }
 
-void Plot::print_gnuplot(Body billar[], int N, double R, double alpha, double rad, double lx, double ly)
+void Plot::print_gnuplot(Body billar[], int N, double R, double alpha, double rad, double lx, double ly, int choose)
 {
   std::cout <<"plot "; 
   for (int ii = 0; ii < N; ++ii){
     std::cout << billar[ii].r(0) << " + " << billar[ii].Rad << "*cos(2*pi*t),"
 	      << billar[ii].r(1) << " + " << billar[ii].Rad << "*sin(2*pi*t)  lt " << ii+1 << ",";
   }
-  print_table2(R, alpha);  
-  print_table1(rad, lx, ly);  
+  if (choose == 1){print_table2(R, alpha);}
+    else {print_table1(rad, lx, ly);}
+ 
   std::cout << std::endl;
 }
 
