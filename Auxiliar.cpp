@@ -65,12 +65,12 @@ void Plot::init_gnuplot(void)
 
 void Plot::print_table1(double rad, double lx, double ly)
 {
-  std::cout << "set xrange [-0.5-" << rad << ":" << lx+rad+0.5 << "]" << std::endl;//for square table
-  std::cout << "set yrange [-0.5-" << rad << ":" << ly+rad+0.5 << "]" << std::endl;
-  std::cout << "plot " << lx+rad << ","<< -rad<< "+" <<ly +2*rad<<"* t , " ;
+  //std::cout << "set xrange [-0.5-" << rad << ":" << lx+rad+0.5 << "]" << std::endl;//for square table
+  //std::cout << "set yrange [-0.5-" << rad << ":" << ly+rad+0.5 << "]" << std::endl;
+  std::cout << lx+rad << ","<< -rad<< "+" <<ly +2*rad<<"* t , " ;
   std::cout << -rad << "+" << lx+2*rad << "*t ," << ly+rad << "," ;
   std::cout << 0-rad << "," << -rad << "+" << ly+2*rad << "*t , " ;
-  std::cout << -rad << "+" << lx+2*rad << "*t " << 0-rad << ";";
+  std::cout << -rad << "+" << lx+2*rad << "*t, " << 0-rad << ";";
   }
 
 void Plot::print_table2(double R, double alpha)
