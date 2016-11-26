@@ -56,7 +56,7 @@ void Plot::init_gnuplot(void)
   std::cout << "set size ratio -1" << std::endl;
   std::cout << "set parametric" << std::endl;
   std::cout << "set trange [0:1]" << std::endl;
-  //std::cout << "set terminal" << std::endl;
+  std::cout << "set term gif animate delay 2" << std::endl;
   std::cout << "unset ytics" << std::endl;
   std::cout << "unset xtics" << std::endl;
   std::cout << "unset border" << std::endl;
@@ -92,7 +92,7 @@ void Plot::print_gnuplot(Body billar[], int N, double R, double alpha, double ra
   std::cout << std::endl;
 }
 
-void Plot::plot_trajectories(int M, int steps, double R, double alpha)
+void Plot::plot_trajectories(int M, int steps, double R, double alpha, double lx, double ly, int choose)
 {
 
   std::ofstream fout("Data_trajectories.gp");
@@ -112,10 +112,17 @@ void Plot::plot_trajectories(int M, int steps, double R, double alpha)
   fout << "M = " << M-1 << std::endl;
   fout << "alpha = " << alpha << std::endl;
   fout << "R = " << R << std::endl;
+  fout << "lx = " << lx << std::endl;
+  fout << "ly = " << ly << std::endl;
+  
 
-  fout << "do for[ii = 1:" << steps-3 << ":3 ]{if( ii < " << steps-3 << "/100 ){plot for [n = 0:M] 'Data.txt' using 2+2*n:3+2*n every ::1::ii w l ls n lt n dashtype 2, R*cos(pi*t), alpha + R*sin(pi*t) lt 2 lw 2, R*cos(pi*t), -(alpha + R*sin(pi*t)) lt 2 lw 2, R, -alpha + 2*alpha*t lt 2 lw 2, -R, -alpha + 2*alpha*t lt 2 lw 2, for [n = 0:M] 'Data.txt' using 2+2*n:3+2*n every ::ii::ii w p ps 2 pt n}  else {plot for [n = 0:M] 'Data.txt' using 2+2*n:3+2*n every ::(1+counter)::ii w l ls n lt n; for [n = 0:M] 'Data.txt'  using 2+2*n:3+2*n every::ii::ii w p ps 2 pt n, R*cos(pi*t), alpha + R*sin(pi*t) lt 2 lw 2, R*cos(pi*t), -(alpha + R*sin(pi*t)) lt 2 lw 2, R, -alpha + 2*alpha*t lt 2 lw 2, -R, -alpha + 2*alpha*t lt 2 lw 2, counter = counter + 1}}" << std::endl;
+  if (choose == 1){
+    fout << "do for[ii = 1:" << steps-3 << ":3 ]{if( ii < " << steps-3 << "/500 ){plot for [n = 0:M] 'Data.txt' using 2+2*n:3+2*n every ::1::ii w l ls n lt n dashtype 3, R*cos(pi*t), alpha + R*sin(pi*t) lt 2 lw 2, R*cos(pi*t), -(alpha + R*sin(pi*t)) lt 2 lw 2, R, -alpha + 2*alpha*t lt 2 lw 2, -R, -alpha + 2*alpha*t lt 2 lw 2, for [n = 0:M] 'Data.txt' using 2+2*n:3+2*n every ::ii::ii w p ps 2 pt 7}  else {plot for [n = 0:M] 'Data.txt' using 2+2*n:3+2*n every ::(1+counter)::ii w l ls n lt n, for [n = 0:M] 'Data.txt'  using 2+2*n:3+2*n every::ii::ii w p ps 2 pt 7, R*cos(pi*t), alpha + R*sin(pi*t) lt 2 lw 2, R*cos(pi*t), -(alpha + R*sin(pi*t)) lt 2 lw 2, R, -alpha + 2*alpha*t lt 2 lw 2, -R, -alpha + 2*alpha*t lt 2 lw 2; counter = counter + 1}}" << std::endl;
   fout.close();
-
+  }else{
+    fout << "do for[ii = 1:" << steps-3 << ":3 ]{if( ii < " << steps-3 << "/500 ){plot for [n = 0:M] 'Data.txt' using 2+2*n:3+2*n every ::1::ii w l ls n lt n dashtype 2,lx, 0+ly*t lt 2 lw 2, 0+ lx*t, ly lt 2 lw 2, 0, 0+ly*t lt 2 lw 2,0+lx*t, 0 lt 2 lw 2 , for [n = 0:M] 'Data.txt' using 2+2*n:3+2*n every ::ii::ii w p ps 2 pt 3+n}  else {plot for [n = 0:M] 'Data.txt' using 2+2*n:3+2*n every ::(1+counter)::ii w l ls n lt n, for [n = 0:M] 'Data.txt'  using 2+2*n:3+2*n every::ii::ii w p ps 2 pt 4+n, lx, 0+ly*t lt 2 lw 2, 0+ lx*t, ly lt 2 lw 2, 0, 0+ly*t lt 2 lw 2,0+lx*t, 0 lt 2 lw 2; counter = counter + 1}}" << std::endl;
+  fout.close();  
+  }
   std::cout << "load 'Data_trajectories.gp' " << std::endl;
 
 }

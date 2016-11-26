@@ -28,5 +28,5 @@ class Plot
   void print_table1(double rad, double lx, double ly);
   void print_table2(double R, double alpha);
   void print_gnuplot(Body billar[], int N, double R, double alpha, double rad, double lx, double ly, int choose);
-  void plot_trajectories(int M, int steps,double R, double alpha);
+  void plot_trajectories(int M, int steps,double R, double alpha, double lx, double ly, int choose);
 };
