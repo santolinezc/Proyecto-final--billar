@@ -8,15 +8,15 @@
 using namespace Eigen;
 
 // Constantes
-const int N = 20;         // Numero de bolas
+const int N = 50;         // Numero de bolas
 const int dim = 2;        // Dimension
 const double lx = 10.00;  // Longitud mesa rectangular en x
 const double ly = 10.00;  // Longitud mesa rectangular en y
-const int steps = 500000;   // Numero de iteraciones
-const double rad = 1e-3;  // Radio pelotas
-const double alpha = 1; // Parametro de deforamcion mesa estadio
-const double R = 0.5;     // Radio de la mesa estadio
-const double DT = 1.0/(100000);  // Dt
+const int steps = 1000;   // Numero de iteraciones
+const double rad = 0.025;  // Radio pelotas
+const double alpha = 0.5; // Parametro de deforamcion mesa estadio
+const double R = 1;     // Radio de la mesa estadio
+const double DT = 1.0/(10000);  // Dt
 
 const int choose = 1;     // 1 : Stadium; 0 : Rectangular table
 
@@ -48,7 +48,7 @@ int main()
   set_conditions(cuerpo);
 
   Plot Plot;
-  //Plot.init_gnuplot();
+  Plot.init_gnuplot();
   
   for(int ii=0; ii < steps; ++ii){
     timestep_all(cuerpo, DT);
@@ -68,7 +68,7 @@ int main()
       f2out << ii*DT << " " << (cuerpo[0].r - cuerpo[1].r).norm() << std::endl; //Separacion entre la primera y segunda bola
     }
     tables(cuerpo);
-    //Plot.print_gnuplot(cuerpo, N, R, alpha, rad, lx, ly, choose);
+    Plot.print_gnuplot(cuerpo, N, R, alpha, rad, lx, ly, choose);
     }
   
     f1out.close();
