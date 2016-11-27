@@ -8,15 +8,15 @@
 using namespace Eigen;
 
 // Constantes
-const int N = 2;         // Numero de bolas
+const int N = 20;         // Numero de bolas
 const int dim = 2;        // Dimension
 const double lx = 10.00;  // Longitud mesa rectangular en x
 const double ly = 10.00;  // Longitud mesa rectangular en y
-const int steps = 100000;   // Numero de iteraciones
-const double rad = 0;  // Radio pelotas
-const double alpha = 0.1; // Parametro de deforamcion mesa estadio
+const int steps = 500000;   // Numero de iteraciones
+const double rad = 1e-3;  // Radio pelotas
+const double alpha = 1; // Parametro de deforamcion mesa estadio
 const double R = 0.5;     // Radio de la mesa estadio
-const double DT = 1.0/steps;  // Dt
+const double DT = 1.0/(100000);  // Dt
 
 const int choose = 1;     // 1 : Stadium; 0 : Rectangular table
 
@@ -32,13 +32,14 @@ void set_conditions(Body billar[]);
 
 // Opciones
 const int OP = 1; // OP = 0 Condiciones iniciales aleatorias, OP = 1 Condiciones iniciales para el calculo del coeficiente de Lyapunov
-
+const double Delta = 1e-3; //Separacion inicial de las particulas 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int main()
 {
   std::ofstream f1out("Data.txt");
   std::ofstream f2out("Lyapunov.txt");
+  std::ofstream f3out("Phase.txt");
   srand(0);
 
   
@@ -47,16 +48,22 @@ int main()
   set_conditions(cuerpo);
 
   Plot Plot;
-  Plot.init_gnuplot();
+  //Plot.init_gnuplot();
   
   for(int ii=0; ii < steps; ++ii){
     timestep_all(cuerpo, DT);
 
     f1out << ii*DT;
     for(int k = 0; k < N; ++k){
-      f1out << " " <<cuerpo[k].r(0) << " " << cuerpo[k].r(1); //Datos de trajectoria de cad particula
+      f1out << " " << cuerpo[k].r(0) << " " << cuerpo[k].r(1); //Datos de trajectoria de cad particula
     }
     f1out << std::endl;
+    if (abs(cuerpo[0].r(1)) <= 0.0){
+        f3out << cuerpo[0].r(0) << " " << cuerpo[0].v(0);
+        f3out << std::endl;
+    }
+
+    
     if (OP == 1){
       f2out << ii*DT << " " << (cuerpo[0].r - cuerpo[1].r).norm() << std::endl; //Separacion entre la primera y segunda bola
     }
@@ -66,7 +73,8 @@ int main()
   
     f1out.close();
     f2out.close();
-
+    f3out.close();
+    
     Plot.plot_trajectories(N, steps, R, alpha, lx, ly, choose);  //Tomar condiciones tal que DT sea pequeño, sino, el algoritmo fallara
     
   return 0;
@@ -76,7 +84,7 @@ int main()
 void set_table1(Body  billar[])
 {
   double delta,delta1;
-  double dt1= DT/100;
+  double dt1= DT/1000;
   for(int k = 0; k < N;++k){
     // Top and bottom sides
     delta = billar[k].r(1)-ly;
@@ -132,7 +140,6 @@ void set_conditions_table1(Body  billar[])
       billar[i].rold_inicial(DT);
     }
     else if (OP == 1){
-      double Delta = 1e-2;
       for(int ii = 0; ii < 2; ++ii){
 	Random = double(rand())/RAND_MAX;
 	if (Random == 0.0){Random += 0.1;}
@@ -164,7 +171,7 @@ void set_conditions_table1(Body  billar[])
 void set_table2(Body billar[])
 {
   double delta,LX,LY;
-  double dt1 = DT/100;
+  double dt1 = DT/1000;
   for( int ii = 0; ii <N; ++ii){
     LY = billar[ii].r(1);
     if(fabs(LY) < alpha ){
@@ -220,14 +227,14 @@ void set_conditions_table2(Body billar[])
   for (int i = 0; i < N; ++i){
     if (OP == 0){
       for(int ii = 0; ii < 2; ++ii){
-	Random = R*((1.95*double(rand())/RAND_MAX)-1.0);
+	Random = R*((1.975*double(rand())/RAND_MAX)-1.0);
 	if (Random == 0.0){Random += 0.1;}
 	if(ii == 0){
 	  Ri = abs(Random);
 	}
 	else{Ri = -Ri + alpha;}
 	billar[i].r(ii) = Ri*((1.95*double(rand())/RAND_MAX)-1.0);
-	billar[i].v(ii) = 1200*Random;
+	billar[i].v(ii) = 9600*Random;
 	billar[i].m = 1 + double(rand())/RAND_MAX;
 	billar[i].r2old(ii) = 0;
 	billar[i].F(ii) = 0;
@@ -237,17 +244,16 @@ void set_conditions_table2(Body billar[])
       billar[i].rold_inicial(DT);
     }
     else if (OP == 1){
-      double Delta = 1e-2;
       for(int ii = 0; ii < 2; ++ii){
 	Random = R*((1.95*double(rand())/RAND_MAX)-1.0);
-	if (Random == 0.0){Random += 0.1;}
+	//if (Random == 0.0){Random += 0.1;}
 	if(ii == 0){
-	  Ri = abs(Random);
+	  Ri = Random;
 	}
 	else{Ri = -Ri + alpha;}
 	if (i == 0){	
 	  billar[i].r(ii) = Ri*((1.95*double(rand())/RAND_MAX)-1.0);
-	  billar[i].v(ii) = 1200*Random;
+	  billar[i].v(ii) = 900*Random;
 	  billar[i].m = 1 + double(rand())/RAND_MAX;
 	  billar[i].r2old(ii) = 0;
 	  billar[i].F(ii) = 0;
